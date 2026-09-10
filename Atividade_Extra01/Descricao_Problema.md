@@ -1,55 +1,49 @@
-# Descrição
-## Problema
-O problema trata sobre um cenário onde existem diversos bairros que precisam receber cobertura de sinal, e antenas podem ser instaladas em locais que podem fornecer sinal para eles mas existem variáveis nessa situação:
-  - Cada Local pode receber uma antena com uma certa capacidade e custo, que vai disponibilizar cobertura de sinal para certos bairros 
-  - Se um Bairro já recebe cobertura de uma antena, não pode receber de outra (sem regiões sobrepostas)
-  - **Todos** os bairros devem receber cobertura para que a região seja aceita
+# Algoritmo Costrutivo
 
-> O objetivo principal é otimizar o custo do processo (instalação das antenas) consiguindo alcançar a cobertura completa
+## Definição
+O algoritmo é baseado na heurística de melhor custo benefício de local de definido por
+$$C_c = \frac{N}{C}$$
 
-![](image.png)
+- Onde N é número de bairros não descobertos e C é o custo do local
 
-## Solução
-### Representação
-A solução deve ser representada na forma:
-```
-S={A_a,A_b,A_c,...A_n}
+Para a utilização dessa heurísitica foi montada a seguinte estrutura:
+	- Um vetor de Locais
+	- Um vetor de Capacidades (Número de bairros não cobertos que o local se conecta)
+	- Um vetor de Custos (Custo do local)
+	- Uma matriz de Bairros no alcance de cobertura onde cada linha representa um **set** de bairros 
 
-f(S) = c(A_a)+ c(A_b)+ c(A_c)+ ...+ c(A_n)
-```
-### Algoritmos
-Deve ser implementado um algoritmo que combine algoritmos construtivo e de busca local que proponha uma solução viável para o problema.
-- Parte Construtiva
-  - Define uma heurística ideal para avaliar as soluções
-  - Define uma solução inicial
-- Parte da Busca Local
-  - A partir de uma solução inicial, tenta encontrar soluções melhores
+>Essas três estruturas carregam a informação de um Local individual de forma paralela, ou seja os dados referentes ao Local i são acessados com:
+Locais[ i ], Custos[ i ], Bairros_Cobertos[ i ], Capacidades[ i ]
 
-## Algoritmo Implementado
 
-### Heurísticas
-- Fator de Cobertura/Custo (Cc)
-  - Quanto maior melhor
-  - O fator não leva em conta os nós que já possuem cobertura
-    - A cada passo, os vizinhos do nó adicionado precisam ter seu Cc recalculado
 
-## Elementos:
-  ### Local:
-  - Entidade que aponta para Bairros
-  - Possui um identificador de cobertura, custo e custo-benefício
-  - O identificador de cobertura, e de custo-benefício são atualizados se uma das conexões for coberta
-  - Quando selecionado, marca todos os bairros descobertos para o qual aponta como cobertos
+## Execução do algoritmo
+A execução do algoritmo funciona da seguinte forma:
 
-  ### Bairro:
-  - Entidade que carrega a informação de se está coberto ou não
-  - Sabe quem são todos os locais que apontam para ele
-  #### GRAFO ESPARSO:
-  - Quando marcado como coberto, diminui o contador de cobertura de todos os locais que apontam para ele
-  #### GRAFO DENSO:
-  - Quando marcado como coberto, diminui o contador de cobertura de todos os locais que apontam para ele e se remove da lista bairros apontados pelo local
-![](example.png)
-  
-## Pseudocódigo
-1. Percorre todas os locais em O(n) e verifica o fator Cc de cada um, o melhor fator é dado como solução inicial
-2. A cada passo, sempre adiciona o nó com o maior Cc, sempre atualizando o Cc dos vizinhos a cada passo
-3. Algoritmo termina quando há cobertura completa
+1. O Local com melhor $C_c$ é escolhido
+2. Utilizando da matriz de bairros cobertos, cada bairro coberto pelo Local é removido da lista de cobertura dos demais locais
+	1. O uso do set permite fazer essa remoção em O(1)
+3. O valor no índice do vetor de capacidades é atualizado
+4. O processo se repete até que todos os sets na matriz de bairros cobertos estejam vazios
+
+Esse processo pode ser descrito na forma do pseudocódigo:
+
+`Conjuntos_zerados=0
+Total_Conjuntos = tamanho(Bairros_Cobertos)
+
+Enquanto Conjuntos_zerados < Total_Conjuntos{
+melhor = MelhorLocal(Capacidades, Custos)
+
+Para cada bairro coberto b de melhor{
+	Para cada conjunto de bairros cobertos c em Bairros_Cobertos{
+			se b existe em c{
+					c.remove(b)	
+					Se c está vazio{
+						Conjuntos_zeros +=1
+				}
+			}
+		}
+	}
+}`
+
+# Algoritmo de Busca Local

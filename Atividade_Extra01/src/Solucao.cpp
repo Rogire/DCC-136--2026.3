@@ -22,7 +22,7 @@ int find_best(std::vector<int> custo, std::vector<int>* capacidade){
     return best_index;
 }
 
-std::vector<int> solve(std::vector<int> custos, std::vector<int>* capacidades,std::vector<std::unordered_set<int>>* Bairros_Cobertos ){
+std::vector<int> solve(std::vector<int> custos, std::vector<int>* capacidades,std::vector<std::unordered_set<int>> Bairros_Cobertos ){
     int zeros = 0;
     std::vector<int> solution={};
     
@@ -30,13 +30,13 @@ std::vector<int> solve(std::vector<int> custos, std::vector<int>* capacidades,st
         int best = find_best(custos, capacidades);
         solution.push_back(best);
         
-        std::vector<int> cp(Bairros_Cobertos->at(best).begin(), Bairros_Cobertos->at(best).end());;
+        std::vector<int> cp(Bairros_Cobertos.at(best).begin(), Bairros_Cobertos.at(best).end());;
 
         for(int b_id : cp)
         {
-            for(int i=0; i<Bairros_Cobertos->size(); i++)//15
+            for(int i=0; i<Bairros_Cobertos.size(); i++)//15
             {
-                auto& l_id = Bairros_Cobertos->at(i);
+                auto& l_id = Bairros_Cobertos.at(i);
                 if(i != best && l_id.find(b_id) != l_id.end())
                 {
                     l_id.erase(l_id.find(b_id));        
@@ -46,13 +46,42 @@ std::vector<int> solve(std::vector<int> custos, std::vector<int>* capacidades,st
                 }
             }
 
-            Bairros_Cobertos->at(best).erase(b_id);
-            capacidades->at(best) = Bairros_Cobertos->at(best).size();
-            if(Bairros_Cobertos->at(best).empty())  
+            Bairros_Cobertos.at(best).erase(b_id);
+            capacidades->at(best) = Bairros_Cobertos.at(best).size();
+            if(Bairros_Cobertos.at(best).empty())  
                 zeros++;
         }
     }   
     return solution;
+}
+
+void validate(std::vector<int> sol, std::vector<std::unordered_set<int>> Bairros_Cobertos, std::vector<std::string> Locais){
+    
+    std::unordered_set<int> cobertos;
+    bool valid = true;
+
+    for(int i : sol)
+    {
+        std::printf("Local %s cobre os bairros: ", Locais[i].c_str());
+        for(int j : Bairros_Cobertos[i])
+        {
+            std::printf("B%d ", j+1);
+            cobertos.insert(j);
+        }
+        std::printf("\n");
+    }
+    for(int i=0; i<LEN_BAIRROS; i++)
+    {
+        if(cobertos.find(i) == cobertos.end())
+        {
+            std::printf("Bairro B%d não foi coberto\n", i+1);
+            valid = false;
+        }
+    }
+    if(valid)
+        std::printf("Todos os bairros foram cobertos, solução válida!\n");
+    else
+        std::printf("Alguns bairros não foram cobertos, solução inválida!\n");
 }
 
 int main(){
@@ -79,12 +108,14 @@ int main(){
     };
     
     std::printf("Começando...");
-    std::vector<int> sol= solve(custos, &capacidades, &Bairros_Cobertos);
+    std::vector<int> sol= solve(custos, &capacidades, Bairros_Cobertos);
     std::printf("SOLUÇÃO: ");
     for(auto i : sol)
         std::printf("%d ",i);
     std::printf("\n");   
     
+    validate(sol, Bairros_Cobertos, Locais);
+
     return 0;
 }
 
